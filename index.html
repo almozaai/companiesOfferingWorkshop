@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.0.1/react-router-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+    <style>
+      .nav{
+        display: flex;
+        justify-content: space-around;
+      }
+      .selected{
+        background-color: tomato;
+        color: white;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { render } = ReactDOM;
+      const { Component } = React;
+      const { HashRouter, Switch, Route, Link, Redirect } = ReactRouterDOM;
+
+      const Home = ()=> <h1>Home</h1>
+      const Companies = ({companies})=> {
+        return (
+          <div>
+            <h1>Companies({companies.length})</h1>
+            <ul>
+            {
+              companies.map(company => <li>{company.name}</li>)
+            }
+            </ul>
+          </div>
+
+          )
+        }
+      const Nav = (props)=>{
+        const pathname = props.location.pathname
+        const companies = props.companies
+        console.log(props)
+        return(
+          <div className='nav'>
+            <Link to='/' className={pathname === '/'? 'selected':''}>Home</Link>
+            <Link to='/companies' className={pathname==='/companies'?'selected':''}>Companies({ companies.length })</Link>
+          </div>
+        )
+      }
+
+      class App extends Component {
+        constructor(){
+          super();
+          this.state = {
+            companies: []
+          }
+        }
+        async componentDidMount(){
+          const companies = (await axios.get('https://acme-users-api-rev.herokuapp.com/api/companies')).data
+          this.setState({ companies })
+        }
+        render(){
+          const { companies } = this.state;
+
+          return (
+
+            <HashRouter>
+              <div>
+
+                <Route render={({location})=> <Nav companies={companies} location ={location} /> } />
+                <Route exact path='/' component={ Home } />
+                <Route path='/companies' render={ ()=> <Companies companies={companies} /> }/>
+              </div>
+            </HashRouter>
+
+          )
+        }
+      }
+      const root = document.querySelector('#root');
+      render(<App />, root)
+    </script>
+  </body>
+</html>
